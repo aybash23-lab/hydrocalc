@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Гидравлический расчёт трубопровода</title>
+  <meta name="description" content="Оффлайн-калькулятор гидравлического расчёта трубопровода: таблицы Шевелева, теоретическая гидравлика, СНиП 2.04.02-84. Скорость, потери давления, график и подбор оптимального диаметра.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1A6BB5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Гидрорасчёт">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="container header-row">
+    <div class="header-titles">
+      <h1>Гидравлический расчёт трубопровода</h1>
+      <p class="header-sub">Шевелев · теоретическая гидравлика · СНиП 2.04.02-84</p>
+    </div>
+    <div class="header-actions">
+      <button id="installBtn" class="btn btn-primary btn-install" hidden>Установить</button>
+      <button id="aboutBtn" class="btn-icon" aria-label="О программе" title="О программе">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm-1 6h2v7h-2v-7zm0-3h2v2h-2V7z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="offlineBar" class="offline-bar" hidden>Оффлайн-режим — расчёт доступен без интернета</div>
+</header>
+
+<main class="container">
+
+  <section class="card" aria-labelledby="methodTitle">
+    <h2 class="card-title" id="methodTitle">Метод расчёта</h2>
+    <div class="method-grid" role="radiogroup" aria-label="Метод расчёта">
+      <label class="method-pill"><input type="radio" name="method" value="shev" checked><span>Таблицы Шевелева</span></label>
+      <label class="method-pill"><input type="radio" name="method" value="teor"><span>Теоретическая гидравлика</span></label>
+      <label class="method-pill"><input type="radio" name="method" value="snip"><span>СНиП 2.04.02-84</span></label>
+    </div>
+    <p id="methodHint" class="hint"></p>
+  </section>
+
+  <section class="card" aria-labelledby="inputsTitle">
+    <h2 class="card-title" id="inputsTitle">Исходные данные</h2>
+    <div class="form-grid">
+      <div class="field field-wide">
+        <label for="material">Материал труб</label>
+        <select id="material"></select>
+      </div>
+      <div class="field field-wide">
+        <label for="q">Расчётный расход q</label>
+        <div class="input-row">
+          <input id="q" type="text" inputmode="decimal" value="15" autocomplete="off" enterkeyhint="done">
+          <select id="unit" class="unit-select" aria-label="Единицы расхода"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="dOuter">Наружный диаметр D, мм</label>
+        <input id="dOuter" type="text" inputmode="decimal" value="150" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="wall">Толщина стенки s, мм</label>
+        <input id="wall" type="text" inputmode="decimal" value="5" autocomplete="off">
+      </div>
+      <div class="field field-wide">
+        <p class="derived">Внутренний диаметр: <strong id="dInner">— мм</strong></p>
+      </div>
+      <div class="field">
+        <label for="length">Длина L, м</label>
+        <input id="length" type="text" inputmode="decimal" value="100" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="temp">Средняя температура воды t, °C</label>
+        <input id="temp" type="text" inputmode="decimal" value="15" autocomplete="off">
+      </div>
+      <div class="field field-wide teor-only">
+        <label for="roughness">Эквивалентная шероховатость Кэ</label>
+        <select id="roughness"></select>
+      </div>
+      <div class="field field-wide teor-only">
+        <label for="ksi">Сумма коэффициентов местных сопротивлений Σζ</label>
+        <input id="ksi" type="text" inputmode="decimal" value="1.89" autocomplete="off">
+      </div>
+    </div>
+    <p id="inputError" class="error-box" hidden></p>
+  </section>
+
+  <section id="resultsCard" class="card" aria-labelledby="resultsTitle">
+    <div class="results-head">
+      <h2 class="card-title" id="resultsTitle">Результаты</h2>
+      <div class="export-row">
+        <button id="copyBtn" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+          Копировать
+        </button>
+        <button id="shareBtn" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18 16.1c-.8 0-1.5.3-2 .8l-7.1-4.2c.1-.2.1-.5.1-.7s0-.5-.1-.7L16 7.2c.5.5 1.2.8 2 .8a3 3 0 1 0-3-3c0 .2 0 .5.1.7L7.9 9.8a3 3 0 1 0 0 4.4l7.2 4.2c-.1.2-.1.4-.1.6a3 3 0 1 0 3-2.9z"/></svg>
+          Поделиться
+        </button>
+        <button id="saveBtn" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 16l5-5h-3V4h-4v7H7l5 5zm-7 2h14v2H5v-2z"/></svg>
+          Отчёт
+        </button>
+      </div>
+    </div>
+
+    <div class="metric-tiles">
+      <div class="tile" id="tileV">
+        <span class="tile-label">Скорость v</span>
+        <span class="tile-value"><b id="vValue">—</b> <span class="tile-unit">м/с</span></span>
+        <span class="tile-badge" id="vBadge"></span>
+      </div>
+      <div class="tile">
+        <span class="tile-label">Потери давления ΔP</span>
+        <span class="tile-value"><b id="dpValue">—</b> <span class="tile-unit">кгс/см²</span></span>
+        <span class="tile-sub" id="dpSub">— м вод. ст.</span>
+      </div>
+    </div>
+
+    <div id="warnings" class="warnings" hidden></div>
+
+    <h3 class="group-title">Основные величины</h3>
+    <dl class="result-list" id="mainList"></dl>
+
+    <div id="teorBlock" hidden>
+      <h3 class="group-title">Теоретическая гидравлика</h3>
+      <dl class="result-list" id="teorList"></dl>
+    </div>
+
+    <div id="snipBlock" hidden>
+      <h3 class="group-title">Коэффициенты СНиП 2.04.02-84</h3>
+      <dl class="result-list" id="snipList"></dl>
+    </div>
+  </section>
+
+  <section id="chartCard" class="card" aria-labelledby="chartTitle">
+    <h2 class="card-title" id="chartTitle">График: потери давления от диаметра</h2>
+    <div class="chart-wrap">
+      <canvas id="chart" role="img" aria-label="Логарифмический график зависимости потерь давления от внутреннего диаметра"></canvas>
+    </div>
+    <ul class="legend">
+      <li><span class="swatch swatch-curve"></span>ΔP (внутренний диаметр)</li>
+      <li><span class="swatch swatch-green"></span>v = 0,25–1,5 м/с — оптимально</li>
+      <li id="legendRe"><span class="swatch swatch-red"></span>Re = 2320–4000 — переходная зона</li>
+      <li><span class="swatch swatch-point"></span>текущий расчёт</li>
+    </ul>
+    <p class="hint">Логарифмические оси. Слева — большие диаметры (малые скорости), справа — малые диаметры (большие скорости), как в исходном калькуляторе.</p>
+  </section>
+
+  <section id="optCard" class="card" aria-labelledby="optTitle">
+    <h2 class="card-title" id="optTitle">Оптимальный диаметр</h2>
+    <p class="opt-range">Внутренний диаметр при скорости 0,25–1,5 м/с:<br><strong id="optRange">—</strong></p>
+    <div id="optChips" class="chips"></div>
+    <p class="hint">Нажмите на условный проход, чтобы подставить его в поле «Наружный диаметр». Толщину стенки проверьте по сортаменту.</p>
+  </section>
+
+  <p class="footnote">Формулы и справочные данные соответствуют онлайн-калькулятору prostobuild.by. Расчёт выполняется локально в браузере и работает офлайн.</p>
+</main>
+
+<footer class="app-footer">
+  <div class="container footer-row">
+    <span>Гидравлический расчёт трубопровода · PWA v1.0</span>
+    <button id="aboutBtn2" class="linklike">О программе</button>
+  </div>
+</footer>
+
+<dialog id="aboutDialog" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">О программе</h2>
+  <p><strong>Гидравлический расчёт трубопровода</strong> — оффлайн-приложение (PWA) для расчёта скорости воды, удельных и полных потерь давления, построения графика ΔP(D) и подбора оптимального диаметра.</p>
+  <h3>Методы расчёта</h3>
+  <ul class="about-list">
+    <li><strong>Таблицы Шевелева</strong> — эмпирические формулы Ф.А. Шевелева для водопроводных труб: 1000i = t<sub>к</sub>·(q<sup>tв</sup> / d<sup>тм</sup>), коэффициенты зависят от материала.</li>
+    <li><strong>Теоретическая гидравлика</strong> — число Рейнольдса Re = v·d/ν; коэффициент трения λ: 75/Re при Re ≤ 2320 (Пуазейль), 0,3164/Re<sup>0,25</sup> при Re ≤ 4000 (Блазиус), далее Альтшуль 0,11·(68/Re + Кэ/d)<sup>0,25</sup> или квадратичная зона; потери на трение и местные сопротивления.</li>
+    <li><strong>СНиП 2.04.02-84</strong> — формула для магистральных и наружных водопроводов: 1000i = (A1000/19.61)·((A0 + C/v)<sup>m</sup> / d<sup>m+1</sup>)·v².</li>
+  </ul>
+  <h3>Общие зависимости</h3>
+  <ul class="about-list">
+    <li>Плотность воды: ρ(t) = (−0,003·t² − 0,1511·t + 1003,1)/1000, т/м³</li>
+    <li>Вязкость (Пуазейль): ν = 0,0178/(1 + 0,0337·t + 0,000221·t²)/10⁴, м²/с</li>
+    <li>Скорость: v = 4q/(ρ·π·d²), м/с</li>
+    <li>Характеристика сопротивления: S = ΔP/(q·3600)², Па/(т/ч)²</li>
+  </ul>
+  <h3>Установка</h3>
+  <p id="installHintChrome">В Chrome на компьютере и в Android нажмите «Установить» в меню браузера или кнопку «Установить» в шапке приложения.</p>
+  <p id="installHintIOS" hidden>На iPhone/iPad: нажмите «Поделиться», затем «На экран “Домой”» — приложение будет запускаться с иконки и работать офлайн.</p>
+  <p class="disclaimer">Методика и справочные данные воспроизводят калькулятор prostobuild.by (справочник Шевелева, СНиП 2.04.02-84). Результаты носят справочный характер и не заменяют проектную документацию.</p>
+  <div class="dialog-actions">
+    <button id="aboutClose" class="btn btn-primary">Закрыть</button>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="calc.js"></script>
+<script src="chart.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
